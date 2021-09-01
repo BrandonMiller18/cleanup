@@ -1,0 +1,86 @@
+#!/usr/bin/bash
+
+# stuff for files with spaces
+SAVEIFS=$IFS
+IFS=$(echo -en "\n\b")
+
+# create make_dir variable
+make_dir="0"
+
+# get user input if they would like to create a new directory for cleanup
+while [ $make_dir != "Y" ] && [ $make_dir != "N" ]
+do
+	echo "Do you want a new directory for cleanup? (Y/N) "
+	read make_dir
+	# make sure user inputs a Y or N
+	if [ $make_dir != "Y" ] && [ $make_dir != "N" ]
+	then
+		echo; echo "Please enter a valid response."; echo
+	fi
+done
+
+# if user wants new directory we go here and create one
+if [ $make_dir == "Y" ]
+then
+	# get user input for cleanup_dir nanme
+	echo "Cleanup directory name: "
+	read cleanup
+
+	# create cleanup dir
+	dir="cleanup_$cleanup"
+	mkdir "$dir"
+	echo "Directory $dir created."; echo
+
+	# for all files in passed argument dir
+	for file in $@
+	do	
+		# get file extension
+		extension=${file##*.} 
+
+		# check if file is a directory
+		if [ ! -d $file ]
+		then
+			# make sure file is ok to move
+			if [ $extension != "exe" ] && [ $extension != "py" ] && [ $extension != "lnk" ] && [ $extension != "" ]
+			then
+				# check if directory of extension exists, if not make directory for extension
+				if [ ! -d "$dir/$extension" ]
+				then
+					mkdir "$dir/$extension"
+				fi
+				# move file to appropriate extension directory
+				mv $file "$dir/$extension"
+			fi
+		fi
+	done
+fi
+
+# if user does not want a new directory we will create folders in
+# current directory
+if [ $make_dir == "N" ]
+then
+	for file in $@
+	do	
+		# get file extension
+		extension=${file##*.} 
+
+		# check if file is a directory
+		if [ ! -d $file ]
+		then
+			# make sure file is ok to move
+			if [ $extension != "exe" ] && [ $extension != "py" ] && [ $extension != "lnk" ] && [ $extension != "" ]
+			then
+				# check if directory of extension exists, if not make directory for extension
+				if [ ! -d "$extension" ]
+				then
+					mkdir "$extension"
+				fi
+				# move file to appropriate extension directory
+				mv $file "$extension"
+			fi
+		fi
+	done
+fi
+
+# undo the files with spaces crap
+IFS=$SAVEIFS
